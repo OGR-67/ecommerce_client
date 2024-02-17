@@ -59,7 +59,12 @@ const Footer = () => {
             Contact Us
           </Typography>
           <Typography mb="30px">50 main street, 63130 Fisher Drives</Typography>
-          <Typography mb="30px">Email: fakecompanyemail@email.com</Typography>
+          <Typography
+            mb="30px"
+            sx={{ whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
+          >
+            Email: fakecompanyemail@email.com
+          </Typography>
           <Typography mb="30px">(222)333-4444</Typography>
         </Box>
       </Box>
