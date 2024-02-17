@@ -1,8 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Tabs, Tab, Box, Typography, useMediaQuery } from "@mui/material";
+import {
+  Tabs,
+  Tab,
+  Box,
+  Typography,
+  useMediaQuery,
+  Skeleton,
+} from "@mui/material";
 import Items from "../../components/Items";
 import { setItems } from "../../state";
 import { useDispatch, useSelector } from "react-redux";
+import useSWR from "swr";
+
+const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
 const ShoppingList = () => {
   const dispatch = useDispatch();
@@ -10,22 +20,18 @@ const ShoppingList = () => {
   const items = useSelector((state) => state.cart.items);
   const isNonMobile = useMediaQuery("(min-width:600px)");
 
+  const { data, error, isLoading } = useSWR(
+    "https://ecommerce-backend-nuo1.onrender.com/api/items?populate=image",
+    fetcher,
+  );
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
-  async function getItems() {
-    const items = await fetch(
-      "https://ecommerce-backend-nuo1.onrender.com/api/items?populate=image",
-      { method: "GET" },
-    );
-    const itemsJson = await items.json();
-    dispatch(setItems(itemsJson.data));
-  }
-
   useEffect(() => {
-    getItems();
-  }, []);
+    data && dispatch(setItems(data.data));
+  }, [data]);
 
   const topRatedItems = items.filter(
     (item) => item.attributes.category === "topRated",
@@ -37,11 +43,37 @@ const ShoppingList = () => {
     (item) => item.attributes.category === "bestSellers",
   );
 
-  return (
-    <Box width="80%" margin="80px auto">
-      <Typography variant="h3" textAlign="center">
-        Our Featured <b>Products</b>
-      </Typography>
+  const loadingSkeleton = (
+    <>
+      <div>
+        <Skeleton variant="rectangular" width="300px" height="400px" />
+        <Skeleton width="130px" />
+        <Skeleton width="200px" />
+        <Skeleton width="50px" />
+      </div>
+      <div>
+        <Skeleton variant="rectangular" width="300px" height="400px" />
+        <Skeleton width="130px" />
+        <Skeleton width="200px" />
+        <Skeleton width="50px" />
+      </div>
+      <div>
+        <Skeleton variant="rectangular" width="300px" height="400px" />
+        <Skeleton width="130px" />
+        <Skeleton width="200px" />
+        <Skeleton width="50px" />
+      </div>
+      <div>
+        <Skeleton variant="rectangular" width="300px" height="400px" />
+        <Skeleton width="130px" />
+        <Skeleton width="200px" />
+        <Skeleton width="50px" />
+      </div>
+    </>
+  );
+
+  const renderedProductList = (
+    <>
       <Tabs
         textColor="primary"
         indicatorColor="primary"
@@ -70,22 +102,39 @@ const ShoppingList = () => {
         columnGap="1.33%"
       >
         {value === "all" &&
-          items.map((item) => (
-            <Items item={item} key={`${item.name}-${item.id}`} />
-          ))}
+          (isLoading
+            ? loadingSkeleton
+            : items.map((item) => (
+                <Items item={item} key={`${item.name}-${item.id}`} />
+              )))}
         {value === "newArrivals" &&
-          newArrivalsItems.map((item) => (
-            <Items item={item} key={`${item.name}-${item.id}`} />
-          ))}
+          (isLoading
+            ? loadingSkeleton
+            : newArrivalsItems.map((item) => (
+                <Items item={item} key={`${item.name}-${item.id}`} />
+              )))}
         {value === "bestSellers" &&
-          bestSellersItems.map((item) => (
-            <Items item={item} key={`${item.name}-${item.id}`} />
-          ))}
+          (isLoading
+            ? loadingSkeleton
+            : bestSellersItems.map((item) => (
+                <Items item={item} key={`${item.name}-${item.id}`} />
+              )))}
         {value === "topRated" &&
-          topRatedItems.map((item) => (
-            <Items item={item} key={`${item.name}-${item.id}`} />
-          ))}
+          (isLoading
+            ? loadingSkeleton
+            : topRatedItems.map((item) => (
+                <Items item={item} key={`${item.name}-${item.id}`} />
+              )))}
       </Box>
+    </>
+  );
+
+  return (
+    <Box width="80%" margin="80px auto">
+      <Typography variant="h3" textAlign="center">
+        Our Featured <b>Products</b>
+      </Typography>
+      {renderedProductList}
     </Box>
   );
 };
